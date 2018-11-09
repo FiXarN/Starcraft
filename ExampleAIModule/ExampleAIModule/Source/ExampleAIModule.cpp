@@ -84,6 +84,7 @@ Position ExampleAIModule::findGuardPoint()
 void ExampleAIModule::onFrame()
 {
 	Broodwar->printf("xD");
+	Broodwar->printf("HEY, I'M WALKING HERE");
 	//Call every 100:th frame
 	if (Broodwar->getFrameCount() % 100 == 0)
 	{
