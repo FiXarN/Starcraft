@@ -83,6 +83,7 @@ Position ExampleAIModule::findGuardPoint()
 //shall be called.
 void ExampleAIModule::onFrame()
 {
+	Broodwar->printf("xD");
 	//Call every 100:th frame
 	if (Broodwar->getFrameCount() % 100 == 0)
 	{
