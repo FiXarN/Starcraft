@@ -116,6 +116,22 @@ void ExampleAIModule::onFrame()
 	}
 }
 
+void ExampleAIModule::gatherMinerals() {
+	Unit closestMineral = NULL;
+	for (auto m : Broodwar->getMinerals())
+	{
+		if (closestMineral == NULL || u->getDistance(m) < u->getDistance(closestMineral))
+		{
+			closestMineral = m;
+		}
+	}
+	if (closestMineral != NULL)
+	{
+		u->rightClick(closestMineral);
+		Broodwar->printf("Send worker %d to mineral %d", u->getID(), closestMineral->getID());
+	}
+}
+
 //Is called when text is written in the console window.
 //Can be used to toggle stuff on and off.
 void ExampleAIModule::onSendText(std::string text)
