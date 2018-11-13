@@ -83,13 +83,12 @@ Position ExampleAIModule::findGuardPoint()
 //shall be called.
 void ExampleAIModule::onFrame()
 {
-	Broodwar->printf("xD");
-	Broodwar->printf("HEY, I'M WALKING HERE");
 	//Call every 100:th frame
 	if (Broodwar->getFrameCount() % 100 == 0)
 	{
 		//Order one of our workers to guard our chokepoint.
 		//Iterate through the list of units.
+		int guardID = 0;
 		for (auto u : Broodwar->self()->getUnits())
 		{
 			//Check if unit is a worker.
@@ -99,7 +98,27 @@ void ExampleAIModule::onFrame()
 				Position guardPoint = findGuardPoint();
 				//Order the worker to move to the guard point
 				u->rightClick(guardPoint);
+				//Save ID of guard
+				guardID = u->getID();
 				//Only send the first worker.
+				break;
+			}
+		}
+		//Order one of our workers to build a supply depot.
+		//Iterate through the list of units.
+		for (auto u : Broodwar->self()->getUnits())
+		{
+			//Check if unit is a worker.
+			if (u->getType().isWorker() && u->getID() != guardID) {
+				//If 100 minerals reached, build supply depot
+				if (Broodwar->self()->minerals() >= 100) {
+					TilePosition supplyPos = Broodwar->getBuildLocation(UnitTypes::Terran_Supply_Depot, u->getTilePosition(), 300);
+					u->build(UnitTypes::Terran_Supply_Depot, supplyPos);
+				}
+				//If not, gather
+				else {
+
+				}
 				break;
 			}
 		}
