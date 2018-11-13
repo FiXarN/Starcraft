@@ -24,25 +24,7 @@ void ExampleAIModule::onStart()
 	AnalyzeThread();
 
 	//Send each worker to the mineral field that is closest to it
-	for (auto u : Broodwar->self()->getUnits())
-	{
-		if (u->getType().isWorker())
-		{
-			Unit closestMineral = NULL;
-			for (auto m : Broodwar->getMinerals())
-			{
-				if (closestMineral == NULL || u->getDistance(m) < u->getDistance(closestMineral))
-				{
-					closestMineral = m;
-				}
-			}
-			if (closestMineral != NULL)
-			{
-				u->rightClick(closestMineral);
-				Broodwar->printf("Send worker %d to mineral %d", u->getID(), closestMineral->getID());
-			}
-		}
-	}
+	gatherMinerals();
 }
 
 //Called when a game is ended.
@@ -87,8 +69,6 @@ void ExampleAIModule::onFrame()
 	//https://bwapi.github.io/class_b_w_a_p_i_1_1_player_interface.html#acd1991823cf6aa521bd59c6c06766017
 	//https://bwapi.github.io/class_b_w_a_p_i_1_1_unit_interface.html#a014c3fe2ee378af72919005534db3729
 	//https://bwapi.github.io/class_b_w_a_p_i_1_1_tech_type.html
-	Broodwar->printf("xD");
-	Broodwar->printf("HEY, I'M WALKING HERE");
 	//Call every 100:th frame
 	if (Broodwar->getFrameCount() % 100 == 0)
 	{
@@ -123,7 +103,7 @@ void ExampleAIModule::onFrame()
 				}
 				//If not, gather
 				else {
-
+					//gatherMinerals();
 				}
 				break;
 			}
@@ -138,18 +118,24 @@ void ExampleAIModule::onFrame()
 }
 
 void ExampleAIModule::gatherMinerals() {
-	Unit closestMineral = NULL;
-	for (auto m : Broodwar->getMinerals())
+	for (auto u : Broodwar->self()->getUnits())
 	{
-		if (closestMineral == NULL || u->getDistance(m) < u->getDistance(closestMineral))
+		if (u->getType().isWorker())
 		{
-			closestMineral = m;
+			Unit closestMineral = NULL;
+			for (auto m : Broodwar->getMinerals())
+			{
+				if (closestMineral == NULL || u->getDistance(m) < u->getDistance(closestMineral))
+				{
+					closestMineral = m;
+				}
+			}
+			if (closestMineral != NULL)
+			{
+				u->rightClick(closestMineral);
+				Broodwar->printf("Send worker %d to mineral %d", u->getID(), closestMineral->getID());
+			}
 		}
-	}
-	if (closestMineral != NULL)
-	{
-		u->rightClick(closestMineral);
-		Broodwar->printf("Send worker %d to mineral %d", u->getID(), closestMineral->getID());
 	}
 }
 
