@@ -83,6 +83,12 @@ Position ExampleAIModule::findGuardPoint()
 //shall be called.
 void ExampleAIModule::onFrame()
 {
+	//https://bwapi.github.io/class_b_w_a_p_i_1_1_game.html#aeb27c5ae787797bd151fbb6998ee0d9d
+	//https://bwapi.github.io/class_b_w_a_p_i_1_1_player_interface.html#acd1991823cf6aa521bd59c6c06766017
+	//https://bwapi.github.io/class_b_w_a_p_i_1_1_unit_interface.html#a014c3fe2ee378af72919005534db3729
+	//https://bwapi.github.io/class_b_w_a_p_i_1_1_tech_type.html
+	Broodwar->printf("xD");
+	Broodwar->printf("HEY, I'M WALKING HERE");
 	//Call every 100:th frame
 	if (Broodwar->getFrameCount() % 100 == 0)
 	{
@@ -128,6 +134,22 @@ void ExampleAIModule::onFrame()
 	if (analyzed)
 	{
 		drawTerrainData();
+	}
+}
+
+void ExampleAIModule::gatherMinerals() {
+	Unit closestMineral = NULL;
+	for (auto m : Broodwar->getMinerals())
+	{
+		if (closestMineral == NULL || u->getDistance(m) < u->getDistance(closestMineral))
+		{
+			closestMineral = m;
+		}
+	}
+	if (closestMineral != NULL)
+	{
+		u->rightClick(closestMineral);
+		Broodwar->printf("Send worker %d to mineral %d", u->getID(), closestMineral->getID());
 	}
 }
 

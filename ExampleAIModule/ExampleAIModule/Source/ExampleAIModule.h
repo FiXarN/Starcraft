@@ -40,5 +40,6 @@ public:
 	void drawTerrainData();
 	void showPlayers();
 	void showForces();
+	void gatherMinerals();
 	Position findGuardPoint();
 };
