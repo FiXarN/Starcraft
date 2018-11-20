@@ -70,44 +70,98 @@ void ExampleAIModule::onFrame()
 	//https://bwapi.github.io/class_b_w_a_p_i_1_1_unit_interface.html#a014c3fe2ee378af72919005534db3729
 	//https://bwapi.github.io/class_b_w_a_p_i_1_1_tech_type.html
 	//Call every 100:th frame
-	if (Broodwar->getFrameCount() % 100 == 0)
+	if (Broodwar->getFrameCount() % 200 == 0)
 	{
 		//Order one of our workers to guard our chokepoint.
 		//Iterate through the list of units.
-		int guardID = 0;
-		for (auto u : Broodwar->self()->getUnits())
+		/*for (auto u : Broodwar->self()->getUnits())
 		{
-			//Check if unit is a worker.
-			if (u->getType().isWorker())
-			{
-				//Find guard point
-				Position guardPoint = findGuardPoint();
-				//Order the worker to move to the guard point
-				u->rightClick(guardPoint);
-				//Save ID of guard
-				guardID = u->getID();
-				//Only send the first worker.
-				break;
-			}
+		//Check if unit is a worker.
+		if (u->getType().isWorker())
+		{
+		//Find guard point
+		Position guardPoint = findGuardPoint();
+		//Order the worker to move to the guard point
+		u->rightClick(guardPoint);
+		//Save ID of guard
+		guardID = u->getID();
+		//Only send the first worker.
+		break;
 		}
-		//Order one of our workers to build a supply depot.
-		//Iterate through the list of units.
+		}*/
+
+		//Make workers build
 		for (auto u : Broodwar->self()->getUnits())
 		{
 			//Check if unit is a worker.
-			if (u->getType().isWorker() && u->getID() != guardID) {
+			if (u->getType().isWorker()) {
 				//If 100 minerals reached, build supply depot
-				if (Broodwar->self()->minerals() >= 100) {
+				if (Broodwar->self()->minerals() >= 100 && nrOfSupplyDepot < 2) {
 					TilePosition supplyPos = Broodwar->getBuildLocation(UnitTypes::Terran_Supply_Depot, u->getTilePosition(), 300);
-					u->build(UnitTypes::Terran_Supply_Depot, supplyPos);
+					if (Broodwar->canBuildHere(supplyPos, UnitTypes::Terran_Supply_Depot) && u->isConstructing() == false) {
+						u->build(UnitTypes::Terran_Supply_Depot, supplyPos);
+						if (u->isConstructing()) {
+							nrOfSupplyDepot++;
+						}
+					}
+					else {
+						Broodwar->printf("Can't build at this location");
+						supplyPos = Broodwar->getBuildLocation(UnitTypes::Terran_Supply_Depot, u->getTilePosition(), 600);
+						if (Broodwar->canBuildHere(supplyPos, UnitTypes::Terran_Supply_Depot) && u->isConstructing() == false) {
+							u->build(UnitTypes::Terran_Supply_Depot, supplyPos);
+							if (u->isConstructing()) {
+								nrOfSupplyDepot++;
+							}
+						}
+					}
+				}
+				//Build barrack
+				else if (Broodwar->self()->minerals() >= 150 && nrOfSupplyDepot == 2 && nrOfBarracks < 1) {
+					TilePosition barrackPos = Broodwar->getBuildLocation(UnitTypes::Terran_Barracks, u->getTilePosition(), 300);
+					if (Broodwar->canBuildHere(barrackPos, UnitTypes::Terran_Supply_Depot) && u->isConstructing() == false) {
+						u->build(UnitTypes::Terran_Barracks, barrackPos);
+						if (u->isConstructing()) {
+							nrOfBarracks++;
+						}
+					}
+					else {
+						Broodwar->printf("Can't build at this location");
+						barrackPos = Broodwar->getBuildLocation(UnitTypes::Terran_Barracks, u->getTilePosition(), 600);
+						if (Broodwar->canBuildHere(barrackPos, UnitTypes::Terran_Barracks) && u->isConstructing() == false) {
+							u->build(UnitTypes::Terran_Barracks, barrackPos);
+							if (u->isConstructing()) {
+								nrOfBarracks++;
+							}
+						}
+					}
 				}
 				//If not, gather
 				else {
-					//gatherMinerals();
+					gatherMinerals();
 				}
 				break;
 			}
 		}
+
+		for (auto units : Broodwar->self()->getUnits()) {
+			if (units->getType() == UnitTypes::Terran_Barracks && nrOfMarines < 10) {
+				if (units->canTrain(UnitTypes::Terran_Marine)) {
+					units->train(UnitTypes::Terran_Marine);
+					nrOfMarines++;
+				}
+			}
+			if (units->getType() == UnitTypes::Terran_Marine) {
+				//Find guardPoint
+				Position guardPos = findGuardPoint();
+				//Move marines to guardPoint
+				units->rightClick(guardPos);
+			}
+		}
+
+
+		Broodwar->printf("NrOfSupply: %d", nrOfSupplyDepot);
+		Broodwar->printf("NrOfBarrack: %d", nrOfBarracks);
+		Broodwar->printf("NrOfMarines: %d", nrOfMarines);
 	}
 
 	//Draw lines around regions, chokepoints etc.
@@ -133,7 +187,7 @@ void ExampleAIModule::gatherMinerals() {
 			if (closestMineral != NULL)
 			{
 				u->rightClick(closestMineral);
-				Broodwar->printf("Send worker %d to mineral %d", u->getID(), closestMineral->getID());
+				//Broodwar->printf("Send worker %d to mineral %d", u->getID(), closestMineral->getID());
 			}
 		}
 	}

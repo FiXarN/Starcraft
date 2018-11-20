@@ -42,4 +42,9 @@ public:
 	void showForces();
 	void gatherMinerals();
 	Position findGuardPoint();
+private:
+	int guardID = 0;
+	int nrOfSupplyDepot = 0;
+	int nrOfBarracks = 0;
+	int nrOfMarines = 0;
 };
