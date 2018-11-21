@@ -41,6 +41,8 @@ public:
 	void showPlayers();
 	void showForces();
 	void gatherMinerals();
+	void buildStuff(UnitType unitType, Unit unit, int incrementNrOf);
+	void countUnits();
 	Position findGuardPoint();
 private:
 	int guardID = 0;
@@ -49,4 +51,6 @@ private:
 	int nrOfRefinerys = 0;
 	int nrOfAcademys = 0;
 	int nrOfMarines = 0;
+	int nrOfWorkers = 4;
+	int nrOfMedics = 0;
 };
