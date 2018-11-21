@@ -46,5 +46,7 @@ private:
 	int guardID = 0;
 	int nrOfSupplyDepot = 0;
 	int nrOfBarracks = 0;
+	int nrOfRefinerys = 0;
+	int nrOfAcademys = 0;
 	int nrOfMarines = 0;
 };

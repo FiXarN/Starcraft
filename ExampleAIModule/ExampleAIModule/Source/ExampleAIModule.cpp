@@ -72,24 +72,6 @@ void ExampleAIModule::onFrame()
 	//Call every 100:th frame
 	if (Broodwar->getFrameCount() % 200 == 0)
 	{
-		//Order one of our workers to guard our chokepoint.
-		//Iterate through the list of units.
-		/*for (auto u : Broodwar->self()->getUnits())
-		{
-		//Check if unit is a worker.
-		if (u->getType().isWorker())
-		{
-		//Find guard point
-		Position guardPoint = findGuardPoint();
-		//Order the worker to move to the guard point
-		u->rightClick(guardPoint);
-		//Save ID of guard
-		guardID = u->getID();
-		//Only send the first worker.
-		break;
-		}
-		}*/
-
 		//Make workers build
 		for (auto u : Broodwar->self()->getUnits())
 		{
@@ -135,33 +117,79 @@ void ExampleAIModule::onFrame()
 						}
 					}
 				}
+				//Build refinery
+				else if (Broodwar->self()->minerals() >= 100 && nrOfSupplyDepot == 2 && nrOfBarracks == 1 /*&& nrOfMarines >= 10*/ && nrOfRefinerys < 1) {
+					TilePosition refineryPos = Broodwar->getBuildLocation(UnitTypes::Terran_Refinery, u->getTilePosition(), 300);
+					if (Broodwar->canBuildHere(refineryPos, UnitTypes::Terran_Refinery) && u->isConstructing() == false) {
+						u->build(UnitTypes::Terran_Refinery, refineryPos);
+						if (u->isConstructing()) {
+							nrOfRefinerys++;
+						}
+					}
+				}
+				//Build academy
+				else if (Broodwar->self()->minerals() >= 150 && nrOfSupplyDepot == 2 && nrOfBarracks == 1 /*&& nrOfMarines >= 10*/ && nrOfRefinerys == 1 && nrOfAcademys < 1) {
+					TilePosition academyPos = Broodwar->getBuildLocation(UnitTypes::Terran_Academy, u->getTilePosition(), 300);
+					if (Broodwar->canBuildHere(academyPos, UnitTypes::Terran_Academy) && u->isConstructing() == false) {
+						u->build(UnitTypes::Terran_Academy, academyPos);
+						if (u->isConstructing()) {
+							nrOfAcademys++;
+						}
+					}
+					else {
+						Broodwar->printf("Can't build at this location");
+						academyPos = Broodwar->getBuildLocation(UnitTypes::Terran_Academy, u->getTilePosition(), 600);
+						if (Broodwar->canBuildHere(academyPos, UnitTypes::Terran_Academy) && u->isConstructing() == false) {
+							u->build(UnitTypes::Terran_Academy, academyPos);
+							if (u->isConstructing()) {
+								nrOfAcademys++;
+							}
+						}
+					}
+				}
 				//If not, gather
 				else {
-					gatherMinerals();
+					if (nrOfRefinerys > 0) {
+						Unit refinery = NULL;
+						for (auto m : Broodwar->self()->getUnits()) {
+							if (m->getType().isRefinery()) {
+								refinery = m;
+							}
+							if (m->getType().isWorker()) {
+								u->rightClick(refinery);
+								m->rightClick(refinery);
+							}
+						}
+					}
+					else {
+						gatherMinerals();
+					}
 				}
 				break;
 			}
 		}
 
-		for (auto units : Broodwar->self()->getUnits()) {
-			if (units->getType() == UnitTypes::Terran_Barracks && nrOfMarines < 10) {
-				if (units->canTrain(UnitTypes::Terran_Marine)) {
-					units->train(UnitTypes::Terran_Marine);
-					nrOfMarines++;
-				}
-			}
-			if (units->getType() == UnitTypes::Terran_Marine) {
-				//Find guardPoint
-				Position guardPos = findGuardPoint();
-				//Move marines to guardPoint
-				units->rightClick(guardPos);
-			}
+		//Train units and send to choke point
+		/*for (auto units : Broodwar->self()->getUnits()) {
+		if (units->getType() == UnitTypes::Terran_Barracks && nrOfMarines < 10) {
+		if (units->canTrain(UnitTypes::Terran_Marine)) {
+		units->train(UnitTypes::Terran_Marine);
+		nrOfMarines++;
 		}
+		}
+		if (units->getType() == UnitTypes::Terran_Marine) {
+		//Find guardPoint
+		Position guardPos = findGuardPoint();
+		//Move marines to guardPoint
+		units->rightClick(guardPos);
+		}
+		}*/
 
 
 		Broodwar->printf("NrOfSupply: %d", nrOfSupplyDepot);
 		Broodwar->printf("NrOfBarrack: %d", nrOfBarracks);
 		Broodwar->printf("NrOfMarines: %d", nrOfMarines);
+		Broodwar->printf("NrOfRefinerys: %d", nrOfRefinerys);
 	}
 
 	//Draw lines around regions, chokepoints etc.
