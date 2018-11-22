@@ -53,4 +53,6 @@ private:
 	int nrOfMarines = 0;
 	int nrOfWorkers = 4;
 	int nrOfMedics = 0;
+	int nrOfFactorys = 0;
+	int nrOfSiegeTanks = 0;
 };

@@ -78,35 +78,44 @@ void ExampleAIModule::onFrame()
 			//Check if unit is a worker.
 			if (u->getType().isWorker()) {
 				//If 100 minerals reached, build supply depot
-				if (Broodwar->self()->minerals() >= 100 && nrOfSupplyDepot < 2) {
+				if (u->canBuild(UnitTypes::Terran_Supply_Depot) && nrOfSupplyDepot < 2) {
 					buildStuff(UnitTypes::Terran_Supply_Depot, u, 0);
 				}
 				//Build barrack
-				else if (Broodwar->self()->minerals() >= 150 && nrOfSupplyDepot == 2 && nrOfBarracks < 1) {
+				else if (u->canBuild(UnitTypes::Terran_Barracks) && nrOfSupplyDepot == 2 && nrOfBarracks < 1) {
 					buildStuff(UnitTypes::Terran_Barracks, u, 1);
 				}
 				//Build refinery
-				else if (Broodwar->self()->minerals() >= 100 && nrOfSupplyDepot == 2 && nrOfBarracks == 1 && nrOfMarines >= 10 && nrOfRefinerys < 1) {
+				else if (u->canBuild(UnitTypes::Terran_Refinery) && nrOfWorkers == 9 && nrOfRefinerys < 1) {
 					buildStuff(UnitTypes::Terran_Refinery, u, 2);
 				}
 				//Build academy
-				else if (Broodwar->self()->minerals() >= 150 && nrOfSupplyDepot == 2 && nrOfBarracks == 1 && nrOfMarines >= 10 && nrOfRefinerys == 1 &&
-					nrOfAcademys < 1) {
+				else if (u->canBuild(UnitTypes::Terran_Academy) && nrOfRefinerys == 1 && nrOfAcademys < 1) {
 					buildStuff(UnitTypes::Terran_Academy, u, 3);
+				}
+				//Build factory
+				else if (u->canBuild(UnitTypes::Terran_Factory) && nrOfMedics == 3 && nrOfFactorys < 1) {
+					buildStuff(UnitTypes::Terran_Factory, u, 4);
 				}
 				//If not, gather
 				else {
+					//Two workers are gathering gas
 					if (nrOfRefinerys > 0) {
 						Unit refinery = NULL;
-						for (auto m : Broodwar->self()->getUnits()) {
-							if (m->getType().isRefinery()) {
-								refinery = m;
-							}
-							if (m->getType().isWorker()) {
-								m->rightClick(refinery);
+						for (auto findRefinery : Broodwar->self()->getUnits()) {
+							if (findRefinery->getType().isRefinery()) {
+								refinery = findRefinery;
 							}
 						}
-						u->rightClick(refinery);
+						for (auto gatherGasUnit : Broodwar->self()->getUnits()) {
+							if (gatherGasUnit->getType().isWorker() && gatherGasUnit->getID() != u->getID()) {
+								gatherGasUnit->rightClick(refinery);
+								break;
+							}
+						}
+						if (u->getType().isWorker() && !u->isConstructing()) {
+							u->rightClick(refinery);
+						}
 					}
 					else {
 						gatherMinerals();
@@ -118,12 +127,14 @@ void ExampleAIModule::onFrame()
 
 		//Train units and send to choke point
 		for (auto units : Broodwar->self()->getUnits()) {
+			//Train marines
 			if (units->getType() == UnitTypes::Terran_Barracks && nrOfMarines < 10) {
 				if (units->canTrain(UnitTypes::Terran_Marine)) {
 					units->train(UnitTypes::Terran_Marine);
 					nrOfMarines++;
 				}
 			}
+			//Move marines to choke point
 			if (units->getType() == UnitTypes::Terran_Marine) {
 				//Find guardPoint
 				Position guardPos = findGuardPoint();
@@ -131,13 +142,13 @@ void ExampleAIModule::onFrame()
 				units->rightClick(guardPos);
 			}
 			//Train medics
-			if (nrOfSupplyDepot == 2 && nrOfBarracks == 1 && nrOfMarines == 10 && nrOfRefinerys == 1
-				&& nrOfAcademys == 1 && (units->getType() == UnitTypes::Terran_Barracks && nrOfMedics < 3)) {
+			if (nrOfAcademys == 1 && (units->getType() == UnitTypes::Terran_Barracks && nrOfMedics < 3)) {
 				if (units->canTrain(UnitTypes::Terran_Medic)) {
 					units->train(UnitTypes::Terran_Medic);
 					nrOfMedics++;
 				}
 			}
+			//Move medics to choke point
 			if (units->getType() == UnitTypes::Terran_Medic) {
 				//Find guardPoint
 				Position guardPos = findGuardPoint();
@@ -145,34 +156,35 @@ void ExampleAIModule::onFrame()
 				units->rightClick(guardPos);
 			}
 			//Train SCV and make them gather
-			if (nrOfMedics == 3 && (units->getType() == UnitTypes::Terran_Command_Center && nrOfWorkers < 9)) {
+			if (nrOfMarines == 10 && (units->getType() == UnitTypes::Terran_Command_Center && nrOfWorkers < 9)) {
 				if (units->canTrain(UnitTypes::Terran_SCV)) {
 					units->train(UnitTypes::Terran_SCV);
 					nrOfWorkers++;
 				}
-				if (units->getType().isWorker()) {
-					Unit closetGeyser = NULL;
-					for (auto m : Broodwar->getGeysers())
-					{
-						if (closetGeyser == NULL || units->getDistance(m) < units->getDistance(closetGeyser))
-						{
-							closetGeyser = m;
-						}
-					}
-					if (closetGeyser != NULL)
-					{
-						units->rightClick(closetGeyser);
-					}
+				//Make the new workers gather gas ONLY
+				if (units->getType().isWorker() && units->isBeingGathered() == false) {
+					gatherMinerals();
 				}
+			}
+			//Factory build add on
+			if (units->getType() == UnitTypes::Terran_Factory) {
+				if (units->canBuildAddon(UnitTypes::Terran_Machine_Shop)) {
+					units->buildAddon(UnitTypes::Terran_Machine_Shop);
+				}
+				if (units->canTrain(UnitTypes::Terran_Siege_Tank_Tank_Mode) && nrOfSiegeTanks < 3) {
+					units->train(UnitTypes::Terran_Siege_Tank_Tank_Mode);
+				}
+			}
+			//Move tanks to choke point
+			if (units->getType() == UnitTypes::Terran_Siege_Tank_Tank_Mode) {
+				//Find guardPoint
+				Position guardPos = findGuardPoint();
+				//Move marines to guardPoint
+				units->rightClick(guardPos);
 			}
 		}
 
-
-		Broodwar->printf("NrOfSupply: %d", nrOfSupplyDepot);
-		Broodwar->printf("NrOfBarrack: %d", nrOfBarracks);
 		Broodwar->printf("NrOfMarines: %d", nrOfMarines);
-		Broodwar->printf("NrOfRefinerys: %d", nrOfRefinerys);
-		Broodwar->printf("NrOfAcademys: %d", nrOfAcademys);
 		Broodwar->printf("NrOfWorkers: %d", nrOfWorkers);
 		Broodwar->printf("NrOfMedics: %d", nrOfMedics);
 		Broodwar->printf("-----------------------------");
@@ -226,6 +238,9 @@ void ExampleAIModule::buildStuff(UnitType unitType, Unit unit, int incrementNrOf
 			case 3: //Increase nrOf Academy
 				nrOfAcademys++;
 				break;
+			case 4:
+				nrOfFactorys++;
+				break;
 			default:
 				break;
 			}
@@ -250,6 +265,9 @@ void ExampleAIModule::buildStuff(UnitType unitType, Unit unit, int incrementNrOf
 					break;
 				case 3: //Increase nrOf Academy
 					nrOfAcademys++;
+					break;
+				case 4:
+					nrOfFactorys++;
 					break;
 				default:
 					break;
