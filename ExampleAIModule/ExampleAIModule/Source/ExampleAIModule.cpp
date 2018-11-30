@@ -72,135 +72,63 @@ void ExampleAIModule::onFrame()
 	//Call every 100:th frame
 	if (Broodwar->getFrameCount() % 200 == 0)
 	{
+		gatherMinerals();
+		//Commands units
+		for (auto u : Broodwar->self()->getUnits()) {
+			//Check if unit is a worker that is idle
+			/*if (u->getType().isWorker() && u->isIdle()) {
+				gatherMinerals();
+			}*/
+			if (u->getType() == UnitTypes::Terran_Marine) {
+				//Find guardPoint
+				Position guardPos = findGuardPoint();
+				//Move marines to guardPoint
+				u->rightClick(guardPos);
+			}
+			/*if (nrOfRefinerys == 1) {
+				gatherMinerals();
+			}*/
+		}
+
 		//Make workers build
 		for (auto u : Broodwar->self()->getUnits())
 		{
 			//Check if unit is a worker.
 			if (u->getType().isWorker()) {
-				//If 100 minerals reached, build supply depot
-				if (u->canBuild(UnitTypes::Terran_Supply_Depot) && nrOfSupplyDepot < 2) {
-					buildStuff(UnitTypes::Terran_Supply_Depot, u, 0);
-				}
-				//Build barrack
-				else if (u->canBuild(UnitTypes::Terran_Barracks) && nrOfSupplyDepot == 2 && nrOfBarracks < 1) {
+				//Step 2, build barrack
+				if (u->canBuild(UnitTypes::Terran_Barracks) && nrOfWorkers == 9 && nrOfBarracks < 1) {
 					buildStuff(UnitTypes::Terran_Barracks, u, 1);
 				}
-				//Build refinery
-				else if (u->canBuild(UnitTypes::Terran_Refinery) && nrOfWorkers == 9 && nrOfRefinerys < 1) {
+				//Step 3, build one supply 
+				else if (u->canBuild(UnitTypes::Terran_Supply_Depot) && nrOfBarracks == 1 && nrOfSupplyDepot < 2) {
+					buildStuff(UnitTypes::Terran_Supply_Depot, u, 0);
+				}
+				//Step 4, build refinery
+				else if (u->canBuild(UnitTypes::Terran_Refinery) && nrOfMarines == 10 && nrOfRefinerys < 1) {
 					buildStuff(UnitTypes::Terran_Refinery, u, 2);
-				}
-				//Build academy
-				else if (u->canBuild(UnitTypes::Terran_Academy) && nrOfRefinerys == 1 && nrOfAcademys < 1) {
-					buildStuff(UnitTypes::Terran_Academy, u, 3);
-				}
-				//Build factory
-				else if (u->canBuild(UnitTypes::Terran_Factory) && nrOfMedics == 3 && nrOfFactorys < 1) {
-					buildStuff(UnitTypes::Terran_Factory, u, 4);
-				}
-				//If not, gather
-				else {
-					//Two workers are gathering gas
-					if (nrOfRefinerys > 0) {
-						Unit refinery = NULL;
-						for (auto findRefinery : Broodwar->self()->getUnits()) {
-							if (findRefinery->getType().isRefinery()) {
-								refinery = findRefinery;
-							}
-						}
-						for (auto gatherGasUnit : Broodwar->self()->getUnits()) {
-							if (gatherGasUnit->getType().isWorker() && gatherGasUnit->getID() != u->getID()) {
-								gatherGasUnit->rightClick(refinery);
-								break;
-							}
-						}
-						if (u->getType().isWorker() && !u->isConstructing()) {
-							u->rightClick(refinery);
-						}
-					}
-					else {
-						gatherMinerals();
-					}
 				}
 				break;
 			}
 		}
 
-		//Train units and send to choke point
+		//Train units
 		for (auto units : Broodwar->self()->getUnits()) {
-			//Train marines
-			if (units->getType() == UnitTypes::Terran_Barracks && nrOfMarines < 10) {
+			//Step 1, build enough of workers
+			if (units->getType() == UnitTypes::Terran_Command_Center && nrOfWorkers < 9) {
+				if (units->canTrain(UnitTypes::Terran_SCV)) {
+					units->train(UnitTypes::Terran_SCV);
+					nrOfWorkers++;
+				}
+			}
+			if (units->getType() == UnitTypes::Terran_Barracks && nrOfSupplyDepot == 2 && nrOfMarines < 10) {
 				if (units->canTrain(UnitTypes::Terran_Marine)) {
 					units->train(UnitTypes::Terran_Marine);
 					nrOfMarines++;
 				}
 			}
-			//Move marines to choke point
-			if (units->getType() == UnitTypes::Terran_Marine) {
-				//Find guardPoint
-				Position guardPos = findGuardPoint();
-				//Move marines to guardPoint
-				units->rightClick(guardPos);
-			}
-			//Train SCV and make them gather
-			if (nrOfMarines == 10 && (units->getType() == UnitTypes::Terran_Command_Center && nrOfWorkers < 9)) {
-				if (units->canTrain(UnitTypes::Terran_SCV)) {
-					units->train(UnitTypes::Terran_SCV);
-					nrOfWorkers++;
-				}
-				//Make the new workers gather minerals ONLY
-				if (units->getType().isWorker() && !units->isBeingGathered()) {
-					gatherMinerals();
-				}
-			}
-			//Train medics
-			if (nrOfAcademys == 1 && (units->getType() == UnitTypes::Terran_Barracks && nrOfMedics < 3)) {
-				if (units->canTrain(UnitTypes::Terran_Medic)) {
-					units->train(UnitTypes::Terran_Medic);
-					nrOfMedics++;
-				}
-			}
-			//Move medics to choke point
-			if (units->getType() == UnitTypes::Terran_Medic) {
-				//Find guardPoint
-				Position guardPos = findGuardPoint();
-				//Move marines to guardPoint
-				units->rightClick(guardPos);
-			}
-			//Factory build add on
-			if (units->getType() == UnitTypes::Terran_Factory) {
-				if (units->canBuildAddon(UnitTypes::Terran_Machine_Shop)) {
-					units->buildAddon(UnitTypes::Terran_Machine_Shop);
-				}
-				if (nrOfMedics == 3 && units->canTrain(UnitTypes::Terran_Siege_Tank_Tank_Mode) && nrOfSiegeTanks < 3) {
-					units->train(UnitTypes::Terran_Siege_Tank_Tank_Mode);
-					nrOfSiegeTanks++;
-				}
-			}
-			//Move tanks to choke point
-			if (units->getType() == UnitTypes::Terran_Siege_Tank_Tank_Mode) {
-				//Find guardPoint
-				Position guardPos = findGuardPoint();
-				//Move marines to guardPoint
-				units->rightClick(guardPos);
-
-				//Vet ej om detta är rätt, ska väl vara NÄR man ser fienden
-				if (units->isUnderAttack()) {
-					if (units->canSiege()) {
-						units->siege();
-					}
-				}
-				else {
-					units->unsiege();
-				}
-			}
 		}
 
-
-		Broodwar->printf("NrOfMarines: %d", nrOfMarines);
-		Broodwar->printf("NrOfWorkers: %d", nrOfWorkers);
-		Broodwar->printf("NrOfMedics: %d", nrOfMedics);
-		Broodwar->printf("NrOfTanks: %d", nrOfSiegeTanks);
-		Broodwar->printf("-----------------------------");
+		Broodwar->printf("nrOfRefinerysDepot: %d", nrOfRefinerys);
 	}
 
 	//Draw lines around regions, chokepoints etc.
@@ -211,9 +139,22 @@ void ExampleAIModule::onFrame()
 }
 
 void ExampleAIModule::gatherMinerals() {
-	for (auto u : Broodwar->self()->getUnits())
-	{
-		if (u->getType().isWorker())
+	int nrOfMiners = 0;
+	int nrOfGasGatherers = 0;
+
+	// Counting how many workers are mining and how many are gathering gas
+	for (auto u : Broodwar->self()->getUnits()) {
+		if (u->getType().isWorker() && u->isGatheringMinerals()) {
+			nrOfMiners++;
+		}
+		else if (u->getType().isWorker() && u->isGatheringGas()) {
+			nrOfGasGatherers++;
+		}
+	}
+
+	// Send workers on either mining- or gas gathering duty
+	for (auto u : Broodwar->self()->getUnits()) {
+		if (u->getType().isWorker() && !u->isConstructing() && nrOfRefinerys < 1)
 		{
 			Unit closestMineral = NULL;
 			for (auto m : Broodwar->getMinerals())
@@ -227,6 +168,53 @@ void ExampleAIModule::gatherMinerals() {
 			{
 				u->rightClick(closestMineral);
 				//Broodwar->printf("Send worker %d to mineral %d", u->getID(), closestMineral->getID());
+			}
+		}
+		else if (u->getType().isWorker() && !u->isConstructing() && nrOfRefinerys > 0 && (nrOfGasGatherers != 3 || nrOfMiners != 6)) {
+			/*if (nrOfMiners < 6) {
+				Broodwar->printf("PEEP PEEEP PEEEEEP");
+				Unit closestMineral = NULL;
+				for (auto m : Broodwar->getMinerals())
+				{
+					if (closestMineral == NULL || u->getDistance(m) < u->getDistance(closestMineral))
+					{
+						closestMineral = m;
+					}
+				}
+				if (closestMineral != NULL)
+				{
+					u->rightClick(closestMineral);
+					Broodwar->printf("Send worker %d to mineral %d", u->getID(), closestMineral->getID());
+				}
+			}*/
+			if (nrOfGasGatherers < 3) {
+				//Broodwar->printf("POOP POOOP POOOOOP");
+				Unit closestRefinery = NULL;
+				for (auto refinery : Broodwar->self()->getUnits()) {
+					if (refinery->getType().isRefinery()) {
+						closestRefinery = refinery;
+					}
+				}
+				if (closestRefinery != NULL)
+				{
+					u->rightClick(closestRefinery);
+					//Broodwar->printf("Send worker %d to geyser %d", u->getID(), closestRefinery->getID());
+				}
+			}
+			else if (u->isIdle()) {
+				Unit closestMineral = NULL;
+				for (auto m : Broodwar->getMinerals())
+				{
+					if (closestMineral == NULL || u->getDistance(m) < u->getDistance(closestMineral))
+					{
+						closestMineral = m;
+					}
+				}
+				if (closestMineral != NULL)
+				{
+					u->rightClick(closestMineral);
+					//Broodwar->printf("Send worker %d to mineral %d", u->getID(), closestMineral->getID());
+				}
 			}
 		}
 	}
