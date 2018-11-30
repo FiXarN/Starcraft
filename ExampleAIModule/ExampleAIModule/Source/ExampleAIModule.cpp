@@ -141,6 +141,17 @@ void ExampleAIModule::onFrame()
 				//Move marines to guardPoint
 				units->rightClick(guardPos);
 			}
+			//Train SCV and make them gather
+			if (nrOfMarines == 10 && (units->getType() == UnitTypes::Terran_Command_Center && nrOfWorkers < 9)) {
+				if (units->canTrain(UnitTypes::Terran_SCV)) {
+					units->train(UnitTypes::Terran_SCV);
+					nrOfWorkers++;
+				}
+				//Make the new workers gather minerals ONLY
+				if (units->getType().isWorker() && !units->isBeingGathered()) {
+					gatherMinerals();
+				}
+			}
 			//Train medics
 			if (nrOfAcademys == 1 && (units->getType() == UnitTypes::Terran_Barracks && nrOfMedics < 3)) {
 				if (units->canTrain(UnitTypes::Terran_Medic)) {
@@ -155,24 +166,14 @@ void ExampleAIModule::onFrame()
 				//Move marines to guardPoint
 				units->rightClick(guardPos);
 			}
-			//Train SCV and make them gather
-			if (nrOfMarines == 10 && (units->getType() == UnitTypes::Terran_Command_Center && nrOfWorkers < 9)) {
-				if (units->canTrain(UnitTypes::Terran_SCV)) {
-					units->train(UnitTypes::Terran_SCV);
-					nrOfWorkers++;
-				}
-				//Make the new workers gather gas ONLY
-				if (units->getType().isWorker() && units->isBeingGathered() == false) {
-					gatherMinerals();
-				}
-			}
 			//Factory build add on
 			if (units->getType() == UnitTypes::Terran_Factory) {
 				if (units->canBuildAddon(UnitTypes::Terran_Machine_Shop)) {
 					units->buildAddon(UnitTypes::Terran_Machine_Shop);
 				}
-				if (units->canTrain(UnitTypes::Terran_Siege_Tank_Tank_Mode) && nrOfSiegeTanks < 3) {
+				if (nrOfMedics == 3 && units->canTrain(UnitTypes::Terran_Siege_Tank_Tank_Mode) && nrOfSiegeTanks < 3) {
 					units->train(UnitTypes::Terran_Siege_Tank_Tank_Mode);
+					nrOfSiegeTanks++;
 				}
 			}
 			//Move tanks to choke point
@@ -181,12 +182,24 @@ void ExampleAIModule::onFrame()
 				Position guardPos = findGuardPoint();
 				//Move marines to guardPoint
 				units->rightClick(guardPos);
+
+				//Vet ej om detta är rätt, ska väl vara NÄR man ser fienden
+				if (units->isUnderAttack()) {
+					if (units->canSiege()) {
+						units->siege();
+					}
+				}
+				else {
+					units->unsiege();
+				}
 			}
 		}
+
 
 		Broodwar->printf("NrOfMarines: %d", nrOfMarines);
 		Broodwar->printf("NrOfWorkers: %d", nrOfWorkers);
 		Broodwar->printf("NrOfMedics: %d", nrOfMedics);
+		Broodwar->printf("NrOfTanks: %d", nrOfSiegeTanks);
 		Broodwar->printf("-----------------------------");
 	}
 
@@ -220,7 +233,7 @@ void ExampleAIModule::gatherMinerals() {
 }
 
 void ExampleAIModule::buildStuff(UnitType unitType, Unit unit, int incrementNrOf) {
-	TilePosition buildingPos = Broodwar->getBuildLocation(unitType, unit->getTilePosition(), 300);
+	TilePosition buildingPos = Broodwar->getBuildLocation(unitType, unit->getTilePosition(), 100);
 	if (Broodwar->canBuildHere(buildingPos, unitType) && unit->isConstructing() == false) {
 		unit->build(unitType, buildingPos);
 		if (unit->isConstructing()) {
@@ -246,9 +259,10 @@ void ExampleAIModule::buildStuff(UnitType unitType, Unit unit, int incrementNrOf
 			}
 		}
 	}
+	//Increase the range for building
 	else {
 		Broodwar->printf("Can't build at this location");
-		buildingPos = Broodwar->getBuildLocation(unitType, unit->getTilePosition(), 600);
+		buildingPos = Broodwar->getBuildLocation(unitType, unit->getTilePosition(), 200);
 		if (Broodwar->canBuildHere(buildingPos, unitType) && unit->isConstructing() == false) {
 			unit->build(unitType, buildingPos);
 			if (unit->isConstructing()) {
@@ -502,7 +516,7 @@ void ExampleAIModule::drawTerrainData()
 	for (auto r : BWTA::getRegions())
 	{
 		BWTA::Polygon p = r->getPolygon();
-		for (int j = 0; j<(int)p.size(); j++)
+		for (int j = 0; j < (int)p.size(); j++)
 		{
 			Position point1 = p[j];
 			Position point2 = p[(j + 1) % p.size()];
