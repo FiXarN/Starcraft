@@ -42,7 +42,7 @@ public:
 	void showForces();
 	void gatherMinerals();
 	void buildStuff(UnitType unitType, Unit unit, int incrementNrOf);
-	void countUnits();
+	void countBuildings();
 	Position findGuardPoint();
 private:
 	int guardID = 0;
@@ -55,4 +55,5 @@ private:
 	int nrOfMedics = 0;
 	int nrOfFactorys = 0;
 	int nrOfSiegeTanks = 0;
+	int nrOfMachineShopAddon = 0;
 };
