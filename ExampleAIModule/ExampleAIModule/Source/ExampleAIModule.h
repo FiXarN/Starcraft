@@ -41,7 +41,7 @@ public:
 	void showPlayers();
 	void showForces();
 	void gatherMinerals();
-	void buildStuff(UnitType unitType, Unit unit, int incrementNrOf);
+	void buildStuff(UnitType unitType, Unit unit);
 	void countBuildings();
 	Position findGuardPoint();
 private:
@@ -56,4 +56,6 @@ private:
 	int nrOfFactorys = 0;
 	int nrOfSiegeTanks = 0;
 	int nrOfMachineShopAddon = 0;
+	int nrOfBays = 0;
+	int nrOfCommandCenter = 0;
 };
