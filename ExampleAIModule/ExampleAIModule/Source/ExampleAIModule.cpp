@@ -171,18 +171,18 @@ void ExampleAIModule::onFrame()
 
 		//Train units and send to choke point
 		/*for (auto units : Broodwar->self()->getUnits()) {
-		if (units->getType() == UnitTypes::Terran_Barracks && nrOfMarines < 10) {
-		if (units->canTrain(UnitTypes::Terran_Marine)) {
-		units->train(UnitTypes::Terran_Marine);
-		nrOfMarines++;
-		}
-		}
-		if (units->getType() == UnitTypes::Terran_Marine) {
-		//Find guardPoint
-		Position guardPos = findGuardPoint();
-		//Move marines to guardPoint
-		units->rightClick(guardPos);
-		}
+			if (units->getType() == UnitTypes::Terran_Barracks && nrOfMarines < 10) {
+				if (units->canTrain(UnitTypes::Terran_Marine)) {
+					units->train(UnitTypes::Terran_Marine);
+					nrOfMarines++;
+				}
+			}
+			if (units->getType() == UnitTypes::Terran_Marine) {
+				//Find guardPoint
+				Position guardPos = findGuardPoint();
+				//Move marines to guardPoint
+				units->rightClick(guardPos);
+			}
 		}*/
 
 
