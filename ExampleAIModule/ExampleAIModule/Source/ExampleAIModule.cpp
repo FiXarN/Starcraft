@@ -100,7 +100,7 @@ void ExampleAIModule::onFrame()
 		}
 
 		//Make workers build
-		for (auto u : Broodwar->self()->getUnits())
+		/*for (auto u : Broodwar->self()->getUnits())
 		{
 			countBuildings();
 			//Check if unit is a worker.
@@ -109,7 +109,7 @@ void ExampleAIModule::onFrame()
 				if (u->canBuild(UnitTypes::Terran_Barracks) && nrOfWorkers == 9 && nrOfBarracks < 1) {
 					buildStuff(UnitTypes::Terran_Barracks, u, 1);
 				}
-				//Step 3, build two supply 
+				//Step 3, build two supply
 				else if (u->canBuild(UnitTypes::Terran_Supply_Depot) && nrOfBarracks == 1 && nrOfSupplyDepot < 3) {
 					buildStuff(UnitTypes::Terran_Supply_Depot, u, 0);
 				}
@@ -127,10 +127,10 @@ void ExampleAIModule::onFrame()
 				}
 				break;
 			}
-		}
+		}*/
 
 		//Train units
-		for (auto units : Broodwar->self()->getUnits()) {
+		/*for (auto units : Broodwar->self()->getUnits()) {
 			//Step 1, build enough of workers
 			if (units->getType() == UnitTypes::Terran_Command_Center && nrOfWorkers < 9) {
 				if (units->canTrain(UnitTypes::Terran_SCV)) {
@@ -172,7 +172,28 @@ void ExampleAIModule::onFrame()
 					units->research(TechTypes::Tank_Siege_Mode);
 				}
 			}
+		}*/
+
+		//Regions
+		if (Broodwar->self()->minerals() >= 400) {
+			Position pos;
+			Regionset allRegion = Broodwar->getAllRegions();
+			for (auto region : allRegion) {
+				pos = region->getClosestAccessibleRegion()->getCenter();
+				break;
+			}
+			Broodwar->printf("PosX: %d", pos.x);
+			Broodwar->printf("PosY: %d", pos.y);
+			Broodwar->printf("------------------");
+			for (auto u : Broodwar->self()->getUnits()) {
+				if (u->getType().isWorker()) {
+					u->rightClick(pos);
+
+				}
+				break;
+			}
 		}
+
 	}
 
 	//Draw lines around regions, chokepoints etc.
