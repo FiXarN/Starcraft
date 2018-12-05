@@ -119,12 +119,25 @@ void ExampleAIModule::onFrame()
 				else if (u->canBuild(UnitTypes::Terran_Supply_Depot) && nrOfBarracks >= 1 && nrOfSupplyDepot < 4) {
 					buildStuff(UnitTypes::Terran_Supply_Depot, u);
 				}
+				//Build bunker at chokepoint
+				else if (u->canBuild(UnitTypes::Terran_Bunker) && nrOfSupplyDepot == 4 && nrOfBunkers < 2) {
+					//Find guardPoint
+					Position guardPos = findGuardPoint();
+					u->rightClick(guardPos);
+					if (u->getPosition() == guardPos) {
+						TilePosition posAtChoke = Broodwar->getBuildLocation(UnitTypes::Terran_Bunker, u->getTilePosition(), 250);
+						if (Broodwar->canBuildHere(posAtChoke, UnitTypes::Terran_Bunker)) {
+							Broodwar->printf("Build bunker");
+							u->build(UnitTypes::Terran_Bunker, posAtChoke);
+						}
+					}
+				}
 				//Extra add on, build engineering bay
 				else if (u->canBuild(UnitTypes::Terran_Engineering_Bay) && nrOfRefinerys >= 1 && nrOfBays < 1) {
 					buildStuff(UnitTypes::Terran_Engineering_Bay, u);
 				}
 				//Step 5, build refinery
-				else if (u->canBuild(UnitTypes::Terran_Refinery) && nrOfSupplyDepot >= 4 && nrOfRefinerys < 1) {
+				/*else if (u->canBuild(UnitTypes::Terran_Refinery) && nrOfSupplyDepot >= 4 && nrOfRefinerys < 1) {
 					buildStuff(UnitTypes::Terran_Refinery, u);
 				}
 				//Step 6, build academy
@@ -134,7 +147,7 @@ void ExampleAIModule::onFrame()
 				//Step 8, build factory
 				else if (u->canBuild(UnitTypes::Terran_Factory) && nrOfBays >= 1 && nrOfFactorys < 1) {
 					buildStuff(UnitTypes::Terran_Factory, u);
-				}
+				}*/
 				break;
 			}
 		}
@@ -195,7 +208,7 @@ void ExampleAIModule::onFrame()
 
 		//Find a new base location
 
-		if (nrOfSiegeTanks >= 1) {
+		/*if (nrOfSiegeTanks >= 1) {
 			//Start base
 			BaseLocation* myBase = BWTA::getNearestBaseLocation(Broodwar->self()->getStartLocation());
 			double distance = 999999999.9;
@@ -231,7 +244,7 @@ void ExampleAIModule::onFrame()
 					}
 				}
 			}
-		}
+		}*/
 	}
 
 	//Draw lines around regions, chokepoints etc.
@@ -323,6 +336,7 @@ void ExampleAIModule::countBuildings() {
 	nrOfFactorys = 0;
 	nrOfBays = 0;
 	nrOfCommandCenter = 0;
+	nrOfBunkers = 0;
 
 	for (auto u : Broodwar->self()->getUnits()) {
 		if (u->getType() == UnitTypes::Terran_Barracks) {
@@ -345,6 +359,9 @@ void ExampleAIModule::countBuildings() {
 		}
 		else if (u->getType() == UnitTypes::Terran_Command_Center) {
 			nrOfCommandCenter++;
+		}
+		else if (u->getType() == UnitTypes::Terran_Bunker) {
+			nrOfBunkers++;
 		}
 	}
 }

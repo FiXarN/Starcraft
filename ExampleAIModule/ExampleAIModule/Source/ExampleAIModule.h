@@ -59,4 +59,5 @@ private:
 	int nrOfBays = 0;
 	int nrOfCommandCenter = 0;
 	int firstCommandCenterID = 0;
+	int nrOfBunkers = 0;
 };
