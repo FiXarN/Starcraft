@@ -194,7 +194,7 @@ void ExampleAIModule::onFrame()
 			}
 		}
 
-	}
+		}
 
 	//Draw lines around regions, chokepoints etc.
 	if (analyzed)
