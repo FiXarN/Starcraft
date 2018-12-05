@@ -58,4 +58,5 @@ private:
 	int nrOfMachineShopAddon = 0;
 	int nrOfBays = 0;
 	int nrOfCommandCenter = 0;
+	int firstCommandCenterID = 0;
 };
