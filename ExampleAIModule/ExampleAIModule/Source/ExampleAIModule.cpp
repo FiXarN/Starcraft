@@ -100,37 +100,41 @@ void ExampleAIModule::onFrame()
 		}
 
 		//Make workers build
-		/*for (auto u : Broodwar->self()->getUnits())
+		for (auto u : Broodwar->self()->getUnits())
 		{
 			countBuildings();
 			//Check if unit is a worker.
 			if (u->getType().isWorker() && !u->isConstructing()) {
 				//Step 2, build barrack
-				if (u->canBuild(UnitTypes::Terran_Barracks) && nrOfWorkers == 9 && nrOfBarracks < 1) {
-					buildStuff(UnitTypes::Terran_Barracks, u, 1);
+				if (u->canBuild(UnitTypes::Terran_Barracks) && nrOfWorkers >= 9 && nrOfBarracks < 1) {
+					buildStuff(UnitTypes::Terran_Barracks, u);
 				}
-				//Step 3, build two supply
-				else if (u->canBuild(UnitTypes::Terran_Supply_Depot) && nrOfBarracks == 1 && nrOfSupplyDepot < 3) {
-					buildStuff(UnitTypes::Terran_Supply_Depot, u, 0);
+				//Step 3, build two supply 
+				else if (u->canBuild(UnitTypes::Terran_Supply_Depot) && nrOfBarracks >= 1 && nrOfSupplyDepot < 4) {
+					buildStuff(UnitTypes::Terran_Supply_Depot, u);
+				}
+				//Extra add on, build engineering bay
+				else if (u->canBuild(UnitTypes::Terran_Engineering_Bay) && nrOfRefinerys >= 1 && nrOfBays < 1) {
+					buildStuff(UnitTypes::Terran_Engineering_Bay, u);
 				}
 				//Step 5, build refinery
-				else if (u->canBuild(UnitTypes::Terran_Refinery) && nrOfMarines >= 1 && nrOfRefinerys < 1) {
-					buildStuff(UnitTypes::Terran_Refinery, u, 2);
+				else if (u->canBuild(UnitTypes::Terran_Refinery) && nrOfSupplyDepot >= 4 && nrOfRefinerys < 1) {
+					buildStuff(UnitTypes::Terran_Refinery, u);
 				}
 				//Step 6, build academy
-				else if (u->canBuild(UnitTypes::Terran_Academy) && nrOfRefinerys == 1 && nrOfAcademys < 1) {
-					buildStuff(UnitTypes::Terran_Academy, u, 3);
+				else if (u->canBuild(UnitTypes::Terran_Academy) && nrOfFactorys >= 1 && nrOfAcademys < 1) {
+					buildStuff(UnitTypes::Terran_Academy, u);
 				}
 				//Step 8, build factory
-				else if (u->canBuild(UnitTypes::Terran_Factory) && nrOfMedics >= 1 && nrOfFactorys < 1) {
-					buildStuff(UnitTypes::Terran_Factory, u, 4);
+				else if (u->canBuild(UnitTypes::Terran_Factory) && nrOfBays >= 1 && nrOfFactorys < 1) {
+					buildStuff(UnitTypes::Terran_Factory, u);
 				}
 				break;
 			}
-		}*/
+		}
 
 		//Train units
-		/*for (auto units : Broodwar->self()->getUnits()) {
+		for (auto units : Broodwar->self()->getUnits()) {
 			//Step 1, build enough of workers
 			if (units->getType() == UnitTypes::Terran_Command_Center && nrOfWorkers < 9) {
 				if (units->canTrain(UnitTypes::Terran_SCV)) {
@@ -139,14 +143,14 @@ void ExampleAIModule::onFrame()
 				}
 			}
 			//Step 4, build enough with marine
-			if (units->getType() == UnitTypes::Terran_Barracks && nrOfSupplyDepot == 3 && nrOfMarines < 10) {
+			if (units->getType() == UnitTypes::Terran_Barracks && nrOfBays >= 1 && nrOfMarines < 10) {
 				if (units->canTrain(UnitTypes::Terran_Marine)) {
 					units->train(UnitTypes::Terran_Marine);
 					nrOfMarines++;
 				}
 			}
 			//Step 7, build enough of medics
-			if (units->getType() == UnitTypes::Terran_Barracks && nrOfAcademys == 1 && nrOfMedics < 3) {
+			if (units->getType() == UnitTypes::Terran_Barracks && nrOfAcademys >= 1 && nrOfMedics < 7) {
 				if (units->canTrain(UnitTypes::Terran_Medic)) {
 					units->train(UnitTypes::Terran_Medic);
 					nrOfMedics++;
@@ -160,7 +164,7 @@ void ExampleAIModule::onFrame()
 				}
 			}
 			//Step 10, build siege tanks - Tank mode
-			if (units->getType() == UnitTypes::Terran_Factory && nrOfMachineShopAddon == 1 && nrOfSiegeTanks < 3) {
+			if (units->getType() == UnitTypes::Terran_Factory && nrOfMachineShopAddon >= 1 && nrOfSiegeTanks < 5) {
 				if (units->canTrain(UnitTypes::Terran_Siege_Tank_Tank_Mode)) {
 					units->train(UnitTypes::Terran_Siege_Tank_Tank_Mode);
 					nrOfSiegeTanks++;
@@ -172,23 +176,42 @@ void ExampleAIModule::onFrame()
 					units->research(TechTypes::Tank_Siege_Mode);
 				}
 			}
-		}*/
-
-		//Regions
-		if (Broodwar->self()->minerals() >= 400) {
-			Position pos;
-			Regionset allRegion = Broodwar->getAllRegions();
-			for (auto region : allRegion) {
-				pos = region->getClosestAccessibleRegion()->getCenter();
-				break;
+			//Make armor and better weapons
+			if (units->getType() == UnitTypes::Terran_Engineering_Bay) {
+				if (units->canUpgrade(UpgradeTypes::Terran_Infantry_Armor)) {
+					units->upgrade(UpgradeTypes::Terran_Infantry_Armor);
+				}
+				else if (units->canUpgrade(UpgradeTypes::Terran_Infantry_Weapons)) {
+					units->upgrade(UpgradeTypes::Terran_Infantry_Weapons);
+				}
 			}
-			Broodwar->printf("PosX: %d", pos.x);
-			Broodwar->printf("PosY: %d", pos.y);
-			Broodwar->printf("------------------");
+		}
+
+		//Find a new base location
+
+		/*if (nrOfWorkers >= 4) {
+			//Start base
+			BaseLocation* myBase = BWTA::getNearestBaseLocation(Broodwar->self()->getStartLocation());
+			double distance = 999999999.9;
+			BaseLocation* nearestBase;
+
+			//Find the nearest base
+			for (auto baseLocation : BWTA::getBaseLocations()) {
+				if (baseLocation != myBase) {
+					if (baseLocation->getGroundDistance(myBase) < distance) {
+						distance = baseLocation->getGroundDistance(myBase);
+						nearestBase = baseLocation;
+					}
+				}
+			}
+			//Move one worker to the new base location
 			for (auto u : Broodwar->self()->getUnits()) {
 				if (u->getType().isWorker()) {
-					u->rightClick(pos);
+					u->rightClick(nearestBase->getPosition());
 
+					if (u->getPosition() == nearestBase->getPosition() && u->canBuild(UnitTypes::Terran_Command_Center) && nrOfCommandCenter < 2) {
+						buildStuff(UnitTypes::Terran_Command_Center, u);
+					}
 				}
 				break;
 			}
@@ -270,7 +293,7 @@ void ExampleAIModule::gatherMinerals() {
 	}
 }
 
-void ExampleAIModule::buildStuff(UnitType unitType, Unit unit, int incrementNrOf) {
+void ExampleAIModule::buildStuff(UnitType unitType, Unit unit) {
 	TilePosition buildingPos = Broodwar->getBuildLocation(unitType, unit->getTilePosition(), 100);
 	if (Broodwar->canBuildHere(buildingPos, unitType) && unit->isConstructing() == false) {
 		unit->build(unitType, buildingPos);
@@ -283,6 +306,9 @@ void ExampleAIModule::countBuildings() {
 	nrOfRefinerys = 0;
 	nrOfAcademys = 0;
 	nrOfFactorys = 0;
+	nrOfBays = 0;
+	nrOfCommandCenter = 0;
+
 	for (auto u : Broodwar->self()->getUnits()) {
 		if (u->getType() == UnitTypes::Terran_Barracks) {
 			nrOfBarracks++;
@@ -298,6 +324,12 @@ void ExampleAIModule::countBuildings() {
 		}
 		else if (u->getType() == UnitTypes::Terran_Factory) {
 			nrOfFactorys++;
+		}
+		else if (u->getType() == UnitTypes::Terran_Engineering_Bay) {
+			nrOfBays++;
+		}
+		else if (u->getType() == UnitTypes::Terran_Command_Center) {
+			nrOfCommandCenter++;
 		}
 	}
 }
