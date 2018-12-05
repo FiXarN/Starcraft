@@ -24,6 +24,12 @@ void ExampleAIModule::onStart()
 	AnalyzeThread();
 
 	//Send each worker to the mineral field that is closest to it
+	for (auto firstCommandCenter : Broodwar->self()->getUnits()) {
+		if (firstCommandCenter->getType() == UnitTypes::Terran_Command_Center) {
+			firstCommandCenterID = firstCommandCenter->getID();
+			break;
+		}
+	}
 	gatherMinerals();
 }
 
@@ -79,6 +85,7 @@ void ExampleAIModule::onFrame()
 				u->getType() == UnitTypes::Terran_Factory) {
 				//Find guardPoint
 				Position guardPos = findGuardPoint();
+				guardPos.y -= 10.0;
 				//Move units to guardPoint
 				u->setRallyPoint(guardPos);
 			}
@@ -98,11 +105,8 @@ void ExampleAIModule::onFrame()
 				}
 			}
 		}
-
-
-		countBuildings();
 		//Make workers build
-		/*for (auto u : Broodwar->self()->getUnits())
+		for (auto u : Broodwar->self()->getUnits())
 		{
 			countBuildings();
 			//Check if unit is a worker.
@@ -133,7 +137,7 @@ void ExampleAIModule::onFrame()
 				}
 				break;
 			}
-		}*/
+		}
 
 		//Train units
 		for (auto units : Broodwar->self()->getUnits()) {
@@ -191,7 +195,7 @@ void ExampleAIModule::onFrame()
 
 		//Find a new base location
 
-		if (nrOfWorkers >= 4) {
+		if (nrOfSiegeTanks >= 1) {
 			//Start base
 			BaseLocation* myBase = BWTA::getNearestBaseLocation(Broodwar->self()->getStartLocation());
 			double distance = 999999999.9;
@@ -211,21 +215,19 @@ void ExampleAIModule::onFrame()
 				if (u->getType().isWorker()) {
 					u->rightClick(nearestBase->getPosition());
 
-					if (u->getPosition() == nearestBase->getPosition() && u->canBuild(UnitTypes::Terran_Command_Center) && nrOfCommandCenter < 2) {
+					if (u->getPosition() == nearestBase->getPosition() && u->canBuild(UnitTypes::Terran_Command_Center)
+						&& nrOfCommandCenter < 2 && nrOfSiegeTanks == 5) {
 						buildStuff(UnitTypes::Terran_Command_Center, u);
 					}
 				}
 				break;
 			}
-
+			//Train workers in new command center
 			for (auto u : Broodwar->self()->getUnits()) {
-				if (u->getType() == UnitTypes::Terran_Command_Center) {
-					if (firstCommandCenterID != u->getID()) {
-						/*if (u->canTrain(UnitTypes::Terran_SCV) && (nrOfWorkers < nrOfWorkers + 4)) {
-							u->train(UnitTypes::Terran_SCV);
-						}*/
-						Broodwar->printf("First id: %d", firstCommandCenterID);
-						Broodwar->printf("Second: %d", u->getID());
+				if (u->getType() == UnitTypes::Terran_Command_Center && u->getID() != firstCommandCenterID) {
+					if (u->canTrain(UnitTypes::Terran_SCV) && nrOfWorkers < 13) {
+						u->train(UnitTypes::Terran_SCV);
+						nrOfWorkers++;
 					}
 				}
 			}
@@ -343,7 +345,6 @@ void ExampleAIModule::countBuildings() {
 		}
 		else if (u->getType() == UnitTypes::Terran_Command_Center) {
 			nrOfCommandCenter++;
-			firstCommandCenterID = u->getID();
 		}
 	}
 }
