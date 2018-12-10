@@ -40,9 +40,9 @@ public:
 	void drawTerrainData();
 	void showPlayers();
 	void showForces();
-	void gatherMinerals();
+	void gatherMaterials();
 	void buildStuff(UnitType unitType, Unit unit);
-	void countBuildings();
+	void countUnits();
 	Position findGuardPoint();
 private:
 	int guardID = 0;
