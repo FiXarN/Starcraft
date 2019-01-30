@@ -6,6 +6,13 @@ bool analysis_just_finished;
 BWTA::Region* home;
 BWTA::Region* enemy_base;
 
+
+
+
+/*Added from testRebase branch*/
+
+
+
 //This is the startup method. It is called once
 //when a new game has been started with the bot.
 void ExampleAIModule::onStart()
